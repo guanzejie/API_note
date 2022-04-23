@@ -1,0 +1,190 @@
+—————————————————————————————基础节点—————————————————————————————————————————
+
+Render               #0
+
+RenderSettings       #1
+
+MaterialAssign       #2赋予模型材质球节点
+
+Merge                #3 合并节点，可以再showAdvancedOptions点击为yes，出现高级选项  ，sumBounds点击yes可以查询绑定信息，PreserveWorldSpaceXform保持世界控件状态
+
+GafferThree          #灯光包裹节点
+
+CameraCreate
+
+Alembic_In          #abc导入节点
+
+ScebegraphXml_In    #导入xml节点
+
+PrimitiveCreate     #基础模型节点
+
+Material            #材质创建节点
+
+ArnoldShadingNode   #阿诺德万能节点。  如notetType=image 就是导入图片节点，notetType=standard_surface 就是阿诺德默认材质球，notetType=normal_map相当于maya的normal节点
+
+NetworkMaterial     #材质承载节点， 类似也maya的sg节点  ，用于承载ArnoldShadingNode的表面信息和置换信息等
+
+backdrop            #背景面板节点
+
+transform3d         #移动物体节点
+
+prune               #减选节点，用于移除场景物体
+
+faceSetCreate       #选择面工具，把需要选择的物体放到meshLocation中，选择物体的面，在selection中的小三角处点击第一栏
+
+visibilityAssign    #物体渲染可见节点，可以把创建处理的faceSet加到cel中然后在visible=0，  这样就渲染不可见了
+
+teleport            #传送节点，和merge节点是一样的，可以隐藏连接线，显示连接线alt+t
+
+isolate             #单独显示模型节点
+
+——————————————————————组节点——————————————————————————————————————————————————————————————
+
+全选节点按G键         #组节点， 需要用一个merge节点作为组的输出
+
+选中节点alt+g键      #将节点转换为stack节点，可以创建一堆当前节点 ，就是当前节点的列表
+
+GroupStack         #空组列表节点，可以把任意节点按shift+中键拖到组列表中，用于确定节点列表的类型
+
+Groupmerge         #空组列表节点，和GroupStack 一样
+
+———————————————————————————————————灯光—————————————————————————————————————————
+
+GafferThree        #灯光包裹节点
+
+在skydomelight中添加贴图需要在节点中addshader-> arnoldSurfaceShader=image     filename=贴图路径
+
+lightRig 文件     在GafferThree里的add栏中右键最下一个就是添加lightRig,然后在lightRig里添加其他灯光,可以导出给其他人使用
+
+导入  在GafferThree里的add栏中右键最下一个就是添加import Rig      就可以导入lightRig
+
+——————灯光承接和编辑——————
+可用GafferThree加载lightRig节点的数据
+在GafferThree设置齿轮中点击show Incomeing Scene    选中灯光右键 adopt for editing可以编辑lightRig的灯光
+
+LiveGroup     #把需要的灯光打组（全选节点按G键） 右键convert to LiveGroup   就变成了LiveGroup节点，LiveGroup是一个不可编辑的节点
+LiveGroup的导出    右键publish 就可以导出，   导入可以创建一个LiveGroup节点  在 source里选择文件就可以加载节点
+在GafferThree设置齿轮中点击show Incomeing Scene    选中灯光右键 adopt for editing可以编辑LiveGroup的灯光
+
+如果需要编辑LiveGroup节点可以点击右键convert to Group 就变成了一个普通的组了
+
+
+——————————————————————————————模型设置————————————————————————————————————————————
+ArnoldObjectSettings      #阿诺德物体设置节点，这个节点应该连在渲染设置的前面
+
+—————————————————————————————————渲染设置——————————————————————————————————————————
+RenderSettings 节点        #设置镜头和尺寸
+ArnoldGlobalSettings节点   #设置渲染精度，aa 和采样的设置  ，设置渲染的可见性
+
+
+—————————————————————————————————————渲染输出aov————————————————————————————————————
+
+ArnoldOutputChannelDefine   #aov层的节点，应该放在renderOutputDefine节点前面
+                            需要把name、 layerName、 channel、的名字更改一下   改为和maya分层的名字一样
+                            z通道需要把type 改为FLOAT
+
+renderOutputDefine         #这个节点是设置ArnoldOutputChannelDefine使用，
+                          #outputname必须要和ArnoldOutputChannelDefine里设置的名字一样
+                          应该放在render节点前面
+                          需要把outputName 、channel的名字改一下   改为和ArnoldOutputChannelDefine定义的名字一样
+
+                          设置渲染文件输出路径  把locationType=file， locationSettings里输入以.####.exr结尾的文件夹路径， 在render里可以查看文件夹的路径
+
+后台渲染   在render节点中右键 disk render
+
+——————————————————————————————————宏的设置——————————————————————————————————————————————
+
+1、先把需要制作为宏的节点打组 G    重命名组节点 末尾必须要是 _User    如：group_User
+2、点击组节点下的小扳手，选择save as macro（保存为宏）
+3、保存为宏的文件路径必须是  文档/用户名/.katana/Macros/_User   文件夹下
+4、调用宏文件   在katana的节点面板直接可以搜索到自定义的宏的名称
+
+
+——————————————————————————————————lookfile————————————————————KLF——————————————————————————————————
+————1
+
+LookFileBake      #烘焙模型和贴图        orig连接模型 ，default连接MaterialAssign     点击write look file
+
+LookFileMaterialsIn2    #导入LookFileBake烘焙好的文件
+
+
+————2
+
+LookFileMaterialsOut    #可以写出材质    输入连接MaterialAssign
+
+LookFileMaterialsIn2    #导入LookFileMaterialsOut导出的文件    输出连接MaterialAssign
+
+——————————LookFileMaterialsIn网格材质属性覆盖
+
+NetworkMaterialParameterEdit     #网格材质参数编辑节点     输入连接 MaterialAssign     输出连接ArnoldObjectSettings
+                                  中键把KLF材质拉到location栏中   点击 倒“品”
+                                                               在相应的节点中右键Expos Parameter
+
+———————————————————————————————灯光制作—————————————————————————————————————————————————————————————————
+——————————————————————————spotLight的体积雾
+1设置spotLight灯光位置       在视图上按tab键可以出操作手柄
+
+2在ArnoldGlobalSettings节点的atmosphere里添加一个体质雾的材质，ArnoldShadingNode里添加一个shader类型是atmosphere_volume，连接到merge节点上
+                                                         在大纲中选择材质球拖到ArnoldGlobalSettings节点的atmosphere里
+
+——————————————————————————斑驳影子制作  gobo
+
+1在灯光下面点击add shader  添加一个lightFilter     在arnoldlightFilterShader里选择gobo
+
+2在灯光下面点击add shader  添加一个image    在filename里添加一张贴图
+
+3调整灯光
+
+——————————————————————————lightLink灯光链接
+
+打开linking栏
+
+在灯光下面点击light linking   如果在initialState里选择off   就把需要和这灯光断开的物体拖到Off上
+
+在灯光下面点击shadow linking   如果在initialState里选择off   就把需要和这灯光断开的物体拖到Off上
+
+
+
+———————————————————————————————————————————表达式———————————————————————————————————————————————————————————————————
+
+project.dir                     #katana所在文件目录的路径
+
+getParam("上游节点名.name")      #获取节点名字
+
+
+———————————————————————————————————————————————————————————————————————
+
+from Katana import NodegraphAPI
+
+myNode=NodegraphAPI.CreateNode("节点文件名",NodegraphAPI.GetRootNode())
+
+myNode.setName("设置名字")
+
+—————————————————————————————————————贴图路径暴露的新材质球定义——————————————————————————————————————————————————————————————
+
+1 把贴图的路径和材质的参数暴露给NetworkMaterial节点   在材质球处点击小扳手图标点击edit parameter name in Material interface
+                                                name=必须和需要暴露的参数名字一样如base_color ，group=参数所在的层级如Base
+                                                如果是暴露贴图的路径必须是在贴图处填写材质相应的参数。
+
+2使用LookFileMaterialsOut导出lookFile文件
+
+3使用新建材质球节点Material，   在材质球节点的action栏选择create from Look File，在lookfile栏的lookfile栏填入刚才导出的lookFile文件
+                            然后在lookfile栏的materialPath栏处选择大纲中的NetworkMaterial节点路径
+
+4需要在新定义材质球的路径上赋予一张白色的贴图，防止渲染报错
+
+
+_________________________________________暴露参数给宏____________________________________________________________________
+
+1在宏文件下点击小扳手   ，然后选择edit user parameters   ，点击add，点击string
+
+2点击string栏下左边的小扳手，选择widget typt  选择file path  ，然后点击rename parameter 重新命名
+
+3点击string栏下左边的小扳手，选择widget options 的 sequence listing选择True
+
+4在贴图几点下的filename下点击右键选择expression，getParam("输入宏名字.层级名.组件名")   如：getParam("xxxx_User.user.color_map")
+
+5点击宏文件下的小扳手选择finish editing user parameters    完成编辑
+
+
+
